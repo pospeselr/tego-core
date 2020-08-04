@@ -83,6 +83,14 @@ bool CryptoKey::loadFromData(const QByteArray &data, KeyType type, KeyFormat for
             key = d2i_RSAPrivateKey(NULL, &dp, data.size());
         else
             key = d2i_RSAPublicKey(NULL, &dp, data.size());
+    } else if (format == ED25519_V3) {
+        /*
+            First 32 bytes: Ed25519 secret scalar
+            Last 32 bytes:  Ed25519 PRF secret
+            Public key needs to be derived
+        */
+       const char *scalar_sec   = data.mid(0, 32);
+       const char *seed         = data.mid(32, 32);
     } else {
         Q_UNREACHABLE();
     }
@@ -110,7 +118,10 @@ bool CryptoKey::loadFromKeyBlob(const QByteArray& keyBlob)
     }
     else if (keyBlob.startsWith(ED25519_V3))
     {
+        const auto base64Blob = keyBlob.mid(static_strlen(ED25519_V3));
+        const auto rawBlob = QByteArray::fromBase64(base64Blob);
 
+        return loadFromData(rawBlob, CryptoKey::PrivateKey, CryptoKey::ED25519_V3);
     }
     return false;
 }

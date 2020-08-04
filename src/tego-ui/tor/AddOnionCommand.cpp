@@ -57,7 +57,7 @@ QByteArray AddOnionCommand::build()
         out += " ";
         out += m_service->privateKey().encodedKeyBlob();
     } else {
-        out += " NEW:RSA1024";
+        out += " NEW:ED25519-V3";
     }
 
     foreach (const HiddenService::Target &target, m_service->targets()) {
