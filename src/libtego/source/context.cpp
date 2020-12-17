@@ -130,42 +130,52 @@ tego_tor_network_status_t tego_context::get_tor_network_status() const
     }
 }
 
+constexpr unsigned long djb2(const char *s) {
+    int c = 0;
+    unsigned long hash = 5381;
+
+    while (c = *s++)
+        hash = ((hash << 5) + hash) + c;
+
+    return hash;
+}
+
 tego_tor_bootstrap_tag_t tego_context::get_tor_bootstrap_tag() const
 {
     TEGO_THROW_IF_NULL(this->torControl);
     auto bootstrapStatus = this->torControl->bootstrapStatus();
-    auto bootstrapTag = bootstrapStatus["tag"].toString();
+    auto bootstrapTag = djb2(bootstrapStatus["tag"].toString().toStdString().c_str());
 
     // see https://gitweb.torproject.org/torspec.git/tree/control-spec.txt#n3867
-    // TODO: optimize this function if you're bored, could do binary search rather than linear search
-    constexpr static const char* tagList[] =
+    /* XXX: If this is ever updated, check for hash collisions */
+    constexpr static const unsigned long tagList[] =
     {
-        "starting",
-        "conn_pt",
-        "conn_done_pt",
-        "conn_proxy",
-        "conn_done_proxy",
-        "conn",
-        "conn_done",
-        "handshake",
-        "handshake_done",
-        "onehop_create",
-        "requesting_status",
-        "loading_status",
-        "loading_keys",
-        "requesting_descriptors",
-        "loading_descriptors",
-        "enough_dirinfo",
-        "ap_conn_pt_summary",
-        "ap_conn_done_pt",
-        "ap_conn_proxy",
-        "ap_conn_done_proxy",
-        "ap_conn",
-        "ap_conn_done",
-        "ap_handshake",
-        "ap_handshake_done",
-        "circuit_create",
-        "done",
+        djb2("starting"),
+        djb2("conn_pt"),
+        djb2("conn_done_pt"),
+        djb2("conn_proxy"),
+        djb2("conn_done_proxy"),
+        djb2("conn"),
+        djb2("conn_done"),
+        djb2("handshake"),
+        djb2("handshake_done"),
+        djb2("onehop_create"),
+        djb2("requesting_status"),
+        djb2("loading_status"),
+        djb2("loading_keys"),
+        djb2("requesting_descriptors"),
+        djb2("loading_descriptors"),
+        djb2("enough_dirinfo"),
+        djb2("ap_conn_pt_summary"),
+        djb2("ap_conn_done_pt"),
+        djb2("ap_conn_proxy"),
+        djb2("ap_conn_done_proxy"),
+        djb2("ap_conn"),
+        djb2("ap_conn_done"),
+        djb2("ap_handshake"),
+        djb2("ap_handshake_done"),
+        djb2("circuit_create"),
+        djb2("done")
     };
     static_assert(tego::countof(tagList) == tego_tor_bootstrap_tag_count);
 
